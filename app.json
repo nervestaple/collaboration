@@ -1,0 +1,36 @@
+{
+  "name": "aegir-gallery",
+  "scripts": {},
+  "env": {
+    "GALLERY_MNEMONIC": {
+      "required": true
+    },
+    "GALLERY_PUBLIC": {
+      "required": true
+    },
+    "ALGO_URL": {
+      "required": true
+    },
+    "INDEXER_URL": {
+      "required": true
+    },
+    "NEXT_PUBLIC_GALLERY_PUBLIC": {
+      "required": true
+    },
+    "NEXT_PUBLIC_ALGO_URL": {
+      "required": true
+    },
+    "NEXT_PUBLIC_INDEXER_URL": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+    "heroku-postgresql"
+  ],
+  "stack": "heroku-20"
+}

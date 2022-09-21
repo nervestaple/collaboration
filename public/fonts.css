@@ -1,0 +1,23 @@
+@font-face {
+  font-family: 'TjEvoletteAMix-Bold';
+  src: url('fonts/TJ-Evolette-A-Mix-Bold.eot');
+  src: url('fonts/TJ-Evolette-A-Mix-Bold.eot?#iefix')
+      format('embedded-opentype'),
+    url('fonts/TJ-Evolette-A-Mix-Bold.woff2')
+      format('woff2'),
+    url('fonts/TJ-Evolette-A-Mix-Bold.woff')
+      format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "TjEvoletteAMix-Bold";
+  src: url('fonts/TJ-Evolette-A-Bold.eot');
+  src: url('fonts/TJ-Evolette-A-Bold.eot?#iefix') format('embedded-opentype'),
+    url('fonts/TJ-Evolette-A-Bold.woff2') format('woff2'),
+    url('fonts/TJ-Evolette-A-Bold.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  unicode-range: U+006D, U+004D, U+0065, U+0045;
+}
