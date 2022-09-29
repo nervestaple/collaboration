@@ -1,4 +1,4 @@
-import { Center, Grid, GridItem, HStack, Spinner } from '@chakra-ui/react';
+import { Center, Grid, GridItem, Spinner } from '@chakra-ui/react';
 import { Suspense } from 'react';
 
 import useSelectedCollaborationId from '../hooks/useSelectedCollaborationId';
