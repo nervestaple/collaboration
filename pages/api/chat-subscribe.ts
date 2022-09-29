@@ -52,7 +52,7 @@ export default async function chatSubscribe(
       });
 
       const socketMessage = { id, userId, text };
-      socket.to(roomId).emit(CHAT_MESSAGE_KEY, socketMessage);
+      io.to(roomId).emit(CHAT_MESSAGE_KEY, socketMessage);
     }
 
     socket.on(CHAT_MESSAGE_KEY, handleIncomingChatMessage);
