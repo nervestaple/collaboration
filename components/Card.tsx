@@ -1,20 +1,36 @@
-import { Box, BoxProps, Heading, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  BoxProps,
+  Flex,
+  Heading,
+  useColorModeValue,
+  VStack,
+} from '@chakra-ui/react';
 
 interface Props {
   title?: React.ReactNode;
 }
 
 export default function Card({ children, title, ...props }: BoxProps & Props) {
+  const bg = useColorModeValue('white', 'gray.700');
+
   return (
-    <Box py="24px" px="32px" boxShadow="lg" bg="white" rounded="lg" {...props}>
-      <VStack alignItems="flex-start" w="full">
-        {title && (
-          <Heading noOfLines={1} w="full">
-            {title}
-          </Heading>
-        )}
-        <Box w="full">{children}</Box>
-      </VStack>
-    </Box>
+    <VStack
+      py="24px"
+      px="32px"
+      boxShadow="lg"
+      rounded="lg"
+      bg={bg}
+      alignItems="flex-start"
+      {...props}
+    >
+      {title && (
+        <Box minH="48px" maxW="100%" pb="16px">
+          <Heading noOfLines={1}>{title}</Heading>
+        </Box>
+      )}
+
+      {children}
+    </VStack>
   );
 }

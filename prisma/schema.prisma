@@ -17,6 +17,7 @@ model User {
 
   collaborations UserCollaborations[]
   invites        UserCollaborationInvites[]
+  messages       Message[]
 }
 
 model Collaboration {
@@ -59,6 +60,11 @@ model Message {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  text String
+
   collaboration   Collaboration @relation(fields: [collaborationId], references: [id])
   collaborationId Int
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
 }
