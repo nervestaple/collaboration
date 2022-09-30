@@ -1,8 +1,11 @@
+import { AddIcon } from '@chakra-ui/icons';
 import {
   Avatar,
   Box,
   Divider,
   HStack,
+  IconButton,
+  Tooltip,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -31,19 +34,27 @@ export default function CollaborationDetail({ collaborationId }: Props) {
   return (
     <Card title={collaboration.name} maxH="100%">
       <Box w="full">
-        <HStack bg={avatarBg} w="full" p={2} rounded="lg">
-          <AnimatePresence>
-            {collaboration.members.map((member) => (
-              <motion.div
-                key={member.userId}
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: 'auto' }}
-                exit={{ opacity: 0, width: 0 }}
-              >
-                <Avatar name={member.user.name} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        <HStack>
+          <Tooltip label="Invite User">
+            <Avatar icon={<AddIcon />} as={IconButton} />
+          </Tooltip>
+
+          <HStack bg={avatarBg} w="full" p={2} rounded="lg" overflowX="auto">
+            <AnimatePresence>
+              {collaboration.members.map((member) => (
+                <>
+                  <motion.div
+                    key={member.userId}
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                  >
+                    <Avatar name={member.user.name} />
+                  </motion.div>
+                </>
+              ))}
+            </AnimatePresence>
+          </HStack>
         </HStack>
       </Box>
 

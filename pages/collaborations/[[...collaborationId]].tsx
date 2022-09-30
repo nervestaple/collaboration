@@ -1,16 +1,25 @@
 import { SWRConfig } from 'swr';
 import type { GetServerSidePropsContext } from 'next';
-import { Box } from '@chakra-ui/react';
 
 import getUserIdFromSession from '../../utils/getUserIdFromSession';
 import getCollaborationsOfUser from '../../db/getCollaborationsOfUser';
 import Collaborations from '../../components/Collaborations';
 import getCollaborationById from '../../db/getCollaborationById';
+import {
+  Collaboration,
+  UserCollaborationInvites,
+  UserCollaborations,
+} from '@prisma/client';
 
-type InitialData = Record<
-  string,
-  Record<string, unknown> | Record<string, unknown>[]
->;
+export interface CollaborationsAndInvites {
+  invites: Array<UserCollaborationInvites & { collaboration: Collaboration }>;
+  collaborations: Array<UserCollaborations & { collaboration: Collaboration }>;
+}
+
+interface InitialData {
+  '/api/collaborations': CollaborationsAndInvites;
+  [key: string]: Collaboration | CollaborationsAndInvites;
+}
 
 interface Props {
   initialData?: InitialData;
@@ -34,6 +43,10 @@ export async function getServerSideProps({
   }
 
   const collaborations = await getCollaborationsOfUser(userId);
+  if (!collaborations) {
+    return { props: {} };
+  }
+
   const initialData: InitialData = {
     '/api/collaborations': collaborations,
   };

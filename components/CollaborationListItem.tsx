@@ -10,9 +10,9 @@ import {
 import { Collaboration } from '@prisma/client';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
+import { useSWRConfig } from 'swr';
 
-import useRefreshData from '../hooks/useRefreshData';
+import fetchAPI from '../utils/fetchAPI';
 
 interface Props {
   collaboration: Collaboration;
@@ -29,36 +29,20 @@ export default function CollaborationListItem({
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(collaboration.name);
 
-  const refreshData = useRefreshData();
   const handleSubmit = useCallback(async () => {
     try {
       const key = `/api/collaborations/${collaboration.id}`;
-      // mutate(
-      //   key,
-      //   async (todos) => {
-      //     const updatedTodo = await fetch(key, {
-      //       method: 'PATCH',
-      //       body: JSON.stringify({ completed: true }),
-      //     });
-      //     setIsEditing(false);
-      //     refreshData();
-      //   },
-      //   {
-      //     optimisticData: { ...collaboration, name },
-      //     rollbackOnError: true,
-      //     populateCache: true,
-      //     revalidate: false,
-      //   },
-      // );
+      await fetchAPI(`collaborations/${collaboration.id}`, {
+        method: 'PATCH',
+        body: { name },
+      });
+      mutate('/api/collaborations');
+      mutate(key);
+      setIsEditing(false);
     } catch (e) {
       toast({ status: 'error', title: 'Error updating collaboration name' });
     }
-
-    // await fetchAPI(`collaborations/${collaboration.id}`, {
-    //   method: 'PATCH',
-    //   body: { name },
-    // });
-  }, [collaboration, mutate, toast, name, refreshData]);
+  }, [collaboration, mutate, toast, name]);
 
   useEffect(() => {
     if (!isEditing) {

@@ -1,8 +1,9 @@
 import { Button, Spinner, useColorModeValue } from '@chakra-ui/react';
-import type { Collaboration } from '@prisma/client';
-import useSWR from 'swr';
+import { useRef } from 'react';
+import useSWR, { useSWRConfig } from 'swr';
 
-import useRefreshData from '../hooks/useRefreshData';
+import { CollaborationsAndInvites } from '../pages/collaborations/[[...collaborationId]]';
+import fetchAPI from '../utils/fetchAPI';
 import Card from './Card';
 import CollaborationListItem from './CollaborationListItem';
 import MotionList from './MotionList';
@@ -13,23 +14,30 @@ interface Props {
 }
 
 export default function CollaborationList({ selectedId }: Props) {
-  const { data: collaborations } = useSWR<Collaboration[]>(
-    '/api/collaborations',
-  );
+  const listRef = useRef<HTMLUListElement>(null);
+  const { mutate } = useSWRConfig();
+  const { data } = useSWR<CollaborationsAndInvites>('/api/collaborations');
 
   const itemBg = useColorModeValue('orange.100', 'orange.700');
   const selectedItemBg = useColorModeValue('blue.50', 'blue.700');
 
-  const refreshData = useRefreshData();
-
-  if (!collaborations) {
+  if (!data) {
     return <Spinner />;
   }
 
+  const { collaborations, invites } = data;
+
   return (
-    <Card title="Collaborations">
-      <MotionList py={4} spacing={2} w="full">
-        {collaborations.map((collaboration) => {
+    <Card title="Collaborations" maxH="100%">
+      <MotionList
+        py={4}
+        spacing={2}
+        w="full"
+        maxH="100%"
+        overflow="auto"
+        ref={listRef}
+      >
+        {collaborations.map(({ collaboration }) => {
           const isSelected = collaboration.id === selectedId;
           return (
             <MotionListItem
@@ -49,8 +57,13 @@ export default function CollaborationList({ selectedId }: Props) {
 
       <Button
         onClick={async () => {
-          // await fetchAPI('collaborations', { method: 'POST' });
-          refreshData();
+          await fetchAPI('collaborations', { method: 'POST' });
+          mutate('/api/collaborations');
+          setTimeout(() => {
+            if (listRef.current) {
+              listRef.current.scrollTop = listRef.current?.scrollHeight;
+            }
+          }, 100);
         }}
       >
         Create

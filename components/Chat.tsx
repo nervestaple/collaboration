@@ -93,7 +93,6 @@ export default function Chat({ collaboration }: Props) {
 
   return (
     <>
-      <div>{socket.current?.id}</div>
       <MotionList
         w="full"
         minH={0}

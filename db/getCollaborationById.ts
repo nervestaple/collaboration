@@ -21,7 +21,10 @@ export default async function getCollaborationById(
   const collaboration = await db.collaboration.findFirst({
     where: { id: collaborationId, members: { some: { userId } } },
     include: {
-      members: { include: { user: true } },
+      invites: {
+        include: { user: { select: { id: true, name: true, email: true } } },
+      },
+      members: { include: { user: { select: { id: true, name: true } } } },
       messages: { orderBy: { createdAt: 'asc' } },
     },
   });
