@@ -2,16 +2,19 @@ import type {
   Collaboration,
   Message,
   User,
-  UserCollaborations,
+  UserCollaborationInvite,
+  UserCollaboration,
 } from '@prisma/client';
 
 import db from '../db';
 
 export type CollaborationExtended = Collaboration & {
   messages: Message[];
-  members: (UserCollaborations & {
+  members: (UserCollaboration & {
     user: User;
   })[];
+  invites: (UserCollaborationInvite & { user: User })[];
+  isInvite: boolean;
 };
 
 export default async function getCollaborationById(
@@ -19,7 +22,13 @@ export default async function getCollaborationById(
   collaborationId: number,
 ) {
   const collaboration = await db.collaboration.findFirst({
-    where: { id: collaborationId, members: { some: { userId } } },
+    where: {
+      id: collaborationId,
+      OR: [
+        { members: { some: { userId } } },
+        { invites: { some: { userId } } },
+      ],
+    },
     include: {
       invites: {
         include: { user: { select: { id: true, name: true, email: true } } },

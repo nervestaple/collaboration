@@ -1,22 +1,22 @@
 import { Collaboration } from '@prisma/client';
 import { useCallback, useEffect, useState } from 'react';
+import { mutate } from 'swr';
 import fetchAPI from '../utils/fetchAPI';
-
-import useRefreshData from './useRefreshData';
 
 export default function useEditCollaboration(collaboration: Collaboration) {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(collaboration.name);
-  const refreshData = useRefreshData();
 
   const handleSubmit = useCallback(async () => {
-    await fetchAPI(`collaborations/${collaboration.id}`, {
+    const key = `collaborations/${collaboration.id}`;
+    await fetchAPI(key, {
       method: 'PATCH',
       body: { name },
     });
+    mutate(key);
+    mutate('/collaborations');
     setIsEditing(false);
-    refreshData();
-  }, [collaboration.id, refreshData, name]);
+  }, [collaboration.id, name]);
 
   useEffect(() => {
     if (!isEditing) {

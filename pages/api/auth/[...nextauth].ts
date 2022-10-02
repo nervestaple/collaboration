@@ -18,7 +18,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async session({ session }) {
-      if (!session.user || !session.user.email) {
+      if (!session || !session.user || !session.user.email) {
         return session;
       }
 
@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
     },
 
     async signIn({ user }) {
-      if (!user.email || !user.name) {
+      if (!user || !user.email || !user.name) {
         return false;
       }
 

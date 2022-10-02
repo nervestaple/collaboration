@@ -1,17 +1,25 @@
+import { ReactNode } from 'react';
 import {
   Box,
   BoxProps,
-  Flex,
   Heading,
+  HStack,
+  Tag,
   useColorModeValue,
   VStack,
 } from '@chakra-ui/react';
 
 interface Props {
-  title?: React.ReactNode;
+  cardTitle?: ReactNode;
+  cardTag?: ReactNode;
 }
 
-export default function Card({ children, title, ...props }: BoxProps & Props) {
+export default function Card({
+  children,
+  cardTitle,
+  cardTag,
+  ...props
+}: BoxProps & Props) {
   const bg = useColorModeValue('white', 'gray.700');
 
   return (
@@ -24,10 +32,11 @@ export default function Card({ children, title, ...props }: BoxProps & Props) {
       alignItems="flex-start"
       {...props}
     >
-      {title && (
-        <Box minH="48px" maxW="100%" pb="16px">
-          <Heading noOfLines={1}>{title}</Heading>
-        </Box>
+      {cardTitle && (
+        <HStack minH="48px" maxW="100%" pb="16px">
+          {cardTag && <Tag>{cardTag}</Tag>}{' '}
+          <Heading noOfLines={1}>{cardTitle}</Heading>
+        </HStack>
       )}
 
       {children}

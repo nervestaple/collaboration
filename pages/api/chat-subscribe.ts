@@ -14,7 +14,7 @@ export default async function chatSubscribe(
 ) {
   const userId = await getUserIdFromSession(req, res);
   if (userId === null) {
-    res.status(401);
+    res.status(401).json({ error: 'Not logged in.' });
     return;
   }
 

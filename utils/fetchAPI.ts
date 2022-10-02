@@ -1,10 +1,14 @@
-const API_PREFIX = '/api';
+import getAPIPath from './getAPIPath';
 
 export default async function fetchAPI(
   pathname: string,
   options?: { method?: string; body?: Record<string, unknown> | null } | null,
   params?: Record<string, string>,
 ) {
+  if (!window) {
+    return null;
+  }
+
   const defaultedOptions: RequestInit = {
     method: options?.method || 'GET',
     body: options?.body ? JSON.stringify(options.body) : null,
@@ -15,12 +19,7 @@ export default async function fetchAPI(
   };
 
   const url = new URL(window.origin);
-
-  const cleanedPathname = pathname.startsWith('/')
-    ? pathname.slice(1)
-    : pathname;
-
-  url.pathname = `${API_PREFIX}/${cleanedPathname}`;
+  url.pathname = getAPIPath(pathname);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) =>
@@ -31,8 +30,10 @@ export default async function fetchAPI(
   const res = await fetch(url.toString(), defaultedOptions);
 
   if (!res.ok) {
-    const { message } = await res.json();
-    throw new Error(message);
+    const { error } = await res.json();
+    const e = new Error(error);
+    (e as Error & { status: number }).status = res.status;
+    throw e;
   }
 
   try {

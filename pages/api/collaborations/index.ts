@@ -3,7 +3,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Session, unstable_getServerSession } from 'next-auth';
 
 import db from '../../../db';
-import getCollaborationsOfUser from '../../../db/getCollaborationsOfUser';
+import getCollaborationsOfUser, {
+  type CollaborationsAndInvites,
+} from '../../../db/getCollaborationsOfUser';
 import { authOptions } from '../auth/[...nextauth]';
 
 export default async function handler(
@@ -15,7 +17,8 @@ export default async function handler(
     | null;
 
   if (!session?.userId) {
-    res.status(500).json({ message: 'missing session.userId' });
+    console.error(session);
+    res.status(500).json({ error: 'missing session.userId' });
     return;
   }
   const { userId } = session;
@@ -28,17 +31,22 @@ export default async function handler(
       await getCollaborationsHandler(userId, res);
       return;
     default:
-      res.status(405);
+      res.status(405).end();
       return;
   }
 }
 
 async function getCollaborationsHandler(
   userId: number,
-  res: NextApiResponse<Collaboration[]>,
+  res: NextApiResponse<CollaborationsAndInvites>,
 ) {
-  const collaborations = await getCollaborationsOfUser(userId);
-  res.status(200).json(collaborations);
+  const collaborationsAndInvites = await getCollaborationsOfUser(userId);
+  if (!collaborationsAndInvites) {
+    res.status(500).end();
+    return;
+  }
+
+  res.status(200).json(collaborationsAndInvites);
 }
 
 async function createCollaborationHandler(
@@ -53,7 +61,7 @@ async function createCollaborationHandler(
   });
 
   if (!collaboration) {
-    res.status(500);
+    res.status(500).end();
     return;
   }
 

@@ -31,12 +31,12 @@ export default function CollaborationListItem({
 
   const handleSubmit = useCallback(async () => {
     try {
-      const key = `/api/collaborations/${collaboration.id}`;
-      await fetchAPI(`collaborations/${collaboration.id}`, {
+      const key = `/collaborations/${collaboration.id}`;
+      await fetchAPI(key, {
         method: 'PATCH',
         body: { name },
       });
-      mutate('/api/collaborations');
+      mutate('/collaborations');
       mutate(key);
       setIsEditing(false);
     } catch (e) {

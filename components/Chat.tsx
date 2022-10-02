@@ -113,7 +113,7 @@ export default function Chat({ collaboration }: Props) {
       </MotionList>
 
       <form onSubmit={handleSendSubmit} style={{ width: '100%' }}>
-        <InputGroup size="md" my={4}>
+        <InputGroup size="md" mt={4}>
           <Input
             pr="4.5rem"
             value={inputText}

@@ -15,8 +15,8 @@ model User {
   name  String
   email String @unique
 
-  collaborations UserCollaborations[]
-  invites        UserCollaborationInvites[]
+  collaborations UserCollaboration[]
+  invites        UserCollaborationInvite[]
   messages       Message[]
 }
 
@@ -27,11 +27,11 @@ model Collaboration {
 
   name     String
   messages Message[]
-  members  UserCollaborations[]
-  invites  UserCollaborationInvites[]
+  members  UserCollaboration[]
+  invites  UserCollaborationInvite[]
 }
 
-model UserCollaborations {
+model UserCollaboration {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -43,7 +43,7 @@ model UserCollaborations {
   @@id([userId, collaborationId])
 }
 
-model UserCollaborationInvites {
+model UserCollaborationInvite {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

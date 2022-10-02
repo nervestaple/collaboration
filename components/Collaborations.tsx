@@ -9,20 +9,22 @@ import CollaborationDetail from './CollaborationDetail';
 export default function Collaborations() {
   const selectedCollaborationId = useSelectedCollaborationId();
 
+  const fallback = (
+    <Center flexGrow={1} h="200px">
+      <Spinner />
+    </Center>
+  );
+
   return (
     <Grid w="full" h="full" gridTemplateColumns="1fr 1fr" gridGap="16px">
       <GridItem minH={0} minW={0}>
-        <CollaborationList selectedId={selectedCollaborationId} />
+        <Suspense fallback={fallback}>
+          <CollaborationList selectedId={selectedCollaborationId} />
+        </Suspense>
       </GridItem>
 
       <GridItem minH={0} minW={0}>
-        <Suspense
-          fallback={
-            <Center flexGrow={1} h="200px">
-              <Spinner />
-            </Center>
-          }
-        >
+        <Suspense fallback={fallback}>
           <CollaborationDetail
             collaborationId={selectedCollaborationId}
             key={selectedCollaborationId}

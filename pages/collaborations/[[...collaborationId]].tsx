@@ -5,19 +5,19 @@ import getUserIdFromSession from '../../utils/getUserIdFromSession';
 import getCollaborationsOfUser from '../../db/getCollaborationsOfUser';
 import Collaborations from '../../components/Collaborations';
 import getCollaborationById from '../../db/getCollaborationById';
-import {
+import type {
   Collaboration,
-  UserCollaborationInvites,
-  UserCollaborations,
+  UserCollaborationInvite,
+  UserCollaboration,
 } from '@prisma/client';
 
 export interface CollaborationsAndInvites {
-  invites: Array<UserCollaborationInvites & { collaboration: Collaboration }>;
-  collaborations: Array<UserCollaborations & { collaboration: Collaboration }>;
+  invites: Array<UserCollaborationInvite & { collaboration: Collaboration }>;
+  collaborations: Array<UserCollaboration & { collaboration: Collaboration }>;
 }
 
 interface InitialData {
-  '/api/collaborations': CollaborationsAndInvites;
+  '/collaborations': CollaborationsAndInvites;
   [key: string]: Collaboration | CollaborationsAndInvites;
 }
 
@@ -48,7 +48,7 @@ export async function getServerSideProps({
   }
 
   const initialData: InitialData = {
-    '/api/collaborations': collaborations,
+    '/collaborations': collaborations,
   };
 
   if (
@@ -68,14 +68,18 @@ export async function getServerSideProps({
     return { props: { initialData } };
   }
 
-  initialData[`/api/collaborations/${collaborationId}`] = collaboration;
+  initialData[`/collaborations/${collaborationId}`] = collaboration;
 
   return { props: { initialData } };
 }
 
 export default function CollaborationsPage({ initialData }: Props) {
+  if (!initialData) {
+    return null;
+  }
+
   return (
-    <SWRConfig value={{ fallback: initialData }}>
+    <SWRConfig value={{ fallback: initialData, suspense: true }}>
       <Collaborations />
     </SWRConfig>
   );

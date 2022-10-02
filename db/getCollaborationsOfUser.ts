@@ -1,6 +1,22 @@
+import type {
+  Collaboration,
+  UserCollaborationInvite,
+  UserCollaboration,
+} from '@prisma/client';
 import db from '../db';
 
-export default async function getCollaborationsOfUser(userId: number) {
+export type CollaborationsAndInvites = {
+  invites: (UserCollaborationInvite & {
+    collaboration: Collaboration;
+  })[];
+  collaborations: (UserCollaboration & {
+    collaboration: Collaboration;
+  })[];
+};
+
+export default async function getCollaborationsOfUser(
+  userId: number,
+): Promise<CollaborationsAndInvites | null> {
   const user = await db.user.findUnique({
     where: { id: userId },
     include: {
