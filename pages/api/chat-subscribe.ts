@@ -35,6 +35,7 @@ export default async function chatSubscribe(
   io.on('connection', async (socket) => {
     const collaborationId = await getValidCollaborationId(socket, userId);
     if (collaborationId === null) {
+      console.log('disconnecting', { collaborationId });
       socket.disconnect();
       return;
     }
@@ -65,6 +66,7 @@ async function getValidCollaborationId(
   socket: Socket,
   userId: number,
 ): Promise<number | null> {
+  console.log({ query: socket.handshake.query });
   if (!isString(socket.handshake.query.collaborationId)) {
     return null;
   }
@@ -73,6 +75,8 @@ async function getValidCollaborationId(
   if (!isFinite(collaborationId)) {
     return null;
   }
+
+  console.log({ collaborationId, userId });
 
   const user = await db.user.findUnique({
     where: { id: userId },

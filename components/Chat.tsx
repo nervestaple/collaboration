@@ -4,8 +4,17 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  useToast,
 } from '@chakra-ui/react';
-import { type FormEvent, useEffect, useRef, useState, useMemo } from 'react';
+import { isFinite } from 'lodash-es';
+import {
+  type FormEvent,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import io, { type Socket } from 'socket.io-client';
 
 import type { CollaborationExtended } from '../db/getCollaborationById';
@@ -26,6 +35,7 @@ interface Props {
 }
 
 export default function Chat({ collaboration }: Props) {
+  const toast = useToast();
   const [{ messages }, setMessages] = useState<{
     messages: ServerChatMessage[];
     seenMessageIds: Set<number>;
@@ -45,9 +55,20 @@ export default function Chat({ collaboration }: Props) {
     [collaboration],
   );
 
+  // const tryConnect = useCallback(async () => {
+  //   await fetch('/api/chat-subscribe');
+  //   socket.current = io({
+  //     query: { collaborationId },
+  //   });
+  // }, [collaborationId]);
+
   useEffect(() => {
     async function openSocket() {
-      if (socket.current === null) {
+      if (!isFinite(collaborationId)) {
+        return;
+      }
+
+      if (socket.current === null || !socket.current.connected) {
         await fetch('/api/chat-subscribe');
         socket.current = io({
           query: { collaborationId },
@@ -82,7 +103,12 @@ export default function Chat({ collaboration }: Props) {
   }, [collaborationId]);
 
   function handleSend() {
-    socket.current?.emit('chat-message', inputText);
+    if (!socket.current || !socket.current.connected) {
+      toast({ title: 'Failed to send message.', status: 'error' });
+      return;
+    }
+
+    socket.current.emit('chat-message', inputText);
     setInputText('');
   }
 

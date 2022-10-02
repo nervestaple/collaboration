@@ -11,7 +11,7 @@ export default async function getUserIdFromSession(
   const session = (await unstable_getServerSession(req, res, authOptions)) as
     | (Session & { userId: number })
     | null;
-
+  console.log(session);
   if (!session || isUndefined(session?.userId) || !isFinite(session?.userId)) {
     return null;
   }

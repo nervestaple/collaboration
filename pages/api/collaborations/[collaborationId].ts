@@ -72,12 +72,14 @@ async function updateCollaborationHandler(
     data: { name: req.body.name },
   });
 
-  if (count === 0) {
+  const collaboration = await db.collaboration.findUnique({ where: { id } });
+
+  if (count === 0 || !collaboration) {
     res.status(404).json({ error: 'No collaboration found to update.' });
     return;
   }
 
-  res.status(200).end();
+  res.status(200).json(collaboration);
 }
 
 async function leaveCollaborationHandler(

@@ -99,7 +99,7 @@ async function inviteToCollaborationHandler(
       },
     });
   if (matchingInvitedUserCollaboration) {
-    res.status(200).end();
+    res.status(500).json({ error: `Can't re-invite user.` });
     return;
   }
 

@@ -1,4 +1,5 @@
 import { Button, Divider, Spinner, useColorModeValue } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
 import { useRef } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 
@@ -15,8 +16,9 @@ interface Props {
 }
 
 export default function CollaborationList({ selectedId }: Props) {
-  const listRef = useRef<HTMLUListElement>(null);
   const { mutate } = useSWRConfig();
+  const router = useRouter();
+  const listRef = useRef<HTMLUListElement>(null);
   const { data } = useSWR<CollaborationsAndInvites>('/collaborations');
 
   const itemBg = useColorModeValue('orange.200', 'orange.700');
@@ -27,6 +29,19 @@ export default function CollaborationList({ selectedId }: Props) {
   }
 
   const { collaborations, invites } = data;
+
+  async function handleCreateClick() {
+    const newCollaboration = await fetchAPI('collaborations', {
+      method: 'POST',
+    });
+    mutate('/collaborations');
+    router.push(`/collaborations/${newCollaboration.id}`);
+    setTimeout(() => {
+      if (listRef.current) {
+        listRef.current.scrollTop = listRef.current?.scrollHeight;
+      }
+    }, 100);
+  }
 
   return (
     <Card cardTitle="Collaborations" maxH="100%">
@@ -63,19 +78,7 @@ export default function CollaborationList({ selectedId }: Props) {
         ))}
       </MotionList>
 
-      <Button
-        onClick={async () => {
-          await fetchAPI('collaborations', { method: 'POST' });
-          mutate('/collaborations');
-          setTimeout(() => {
-            if (listRef.current) {
-              listRef.current.scrollTop = listRef.current?.scrollHeight;
-            }
-          }, 100);
-        }}
-      >
-        Create
-      </Button>
+      <Button onClick={handleCreateClick}>Create</Button>
     </Card>
   );
 }

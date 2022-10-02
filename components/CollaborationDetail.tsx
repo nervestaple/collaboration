@@ -1,15 +1,14 @@
 import {
   Avatar,
   Box,
+  Button,
   Divider,
-  Heading,
   HStack,
-  Text,
   Tooltip,
   useColorModeValue,
-  VStack,
 } from '@chakra-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { isFinite } from 'lodash-es';
 import { useSession } from 'next-auth/react';
 import useSWR from 'swr';
 
@@ -19,6 +18,8 @@ import fetchAPI from '../utils/fetchAPI';
 import Card from './Card';
 import Chat from './Chat';
 import InviteCollaborator from './InviteCollaborator';
+import InviteResponseActions from './InviteResponseActions';
+import LeaveCollaborationButton from './LeaveCollaborationButton';
 
 interface Props {
   collaborationId: number | null;
@@ -29,11 +30,10 @@ export default function CollaborationDetail({ collaborationId }: Props) {
   const avatarBg = useColorModeValue('gray.50', 'gray.500');
   const { data: collaboration, error } = useSWR<CollaborationExtended>(
     collaborationId === null ? null : `/collaborations/${collaborationId}`,
-    fetchAPI,
     { revalidateOnMount: true },
   );
 
-  if (!collaboration) {
+  if (collaborationId === null || !collaboration) {
     return null;
   }
 
@@ -42,12 +42,18 @@ export default function CollaborationDetail({ collaborationId }: Props) {
     ({ user: { email } }) => email,
   );
   const isInvite = invitedEmails.some((email) => email === userEmail);
-  console.log({ collaboration, error });
+
+  const action = isInvite ? (
+    <InviteResponseActions collaborationId={collaborationId} />
+  ) : (
+    <LeaveCollaborationButton collaborationId={collaborationId} />
+  );
 
   return (
     <Card
       cardTitle={collaboration.name}
       cardTag={isInvite && 'Invited to...'}
+      cardAction={action}
       maxH="100%"
     >
       <Box w="full" pb={4}>
