@@ -6,11 +6,9 @@ import {
   type ThemeConfig,
 } from '@chakra-ui/react';
 import { SessionProvider } from 'next-auth/react';
+import { SWRConfig } from 'swr';
 
 import Layout from '../components/Layout';
-import { SWRConfig } from 'swr';
-import getAPIPath from '../utils/getAPIPath';
-import { Suspense } from 'react';
 import fetchAPI from '../utils/fetchAPI';
 
 const config: ThemeConfig = {

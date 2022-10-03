@@ -1,6 +1,5 @@
-import { Box, Flex, Grid, GridItem, HStack } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import Card from './Card';
 
 import NavBar from './NavBar';
 
@@ -24,8 +23,6 @@ export default function Layout({ children }: Props) {
           {children}
         </Box>
       </Box>
-
-      {/* {children} */}
     </Flex>
   );
 }
