@@ -31,12 +31,18 @@ export default async function chatSubscribe(
     const cookieString = socket.handshake.headers.cookie;
     const userId = await getUserIdFromCookieString(url, cookieString);
     if (!userId) {
+      console.error(`disconnecting, missing userId`, {
+        url,
+        cookieString,
+        userId,
+      });
       socket.disconnect();
       return;
     }
 
     const collaborationId = await getValidCollaborationId(socket, userId);
     if (collaborationId === null) {
+      console.error('disconnecting, missing collaborationId');
       socket.disconnect();
       return;
     }
