@@ -27,8 +27,9 @@ export default async function chatSubscribe(
   httpSocket.server.io = io;
 
   io.on('connection', async (socket) => {
+    const url = socket.request.url;
     const cookieString = socket.handshake.headers.cookie;
-    const userId = await getUserIdFromCookieString(cookieString);
+    const userId = await getUserIdFromCookieString(url, cookieString);
     if (!userId) {
       socket.disconnect();
       return;

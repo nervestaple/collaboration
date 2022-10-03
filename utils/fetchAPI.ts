@@ -5,7 +5,7 @@ export default async function fetchAPI(
   options?: { method?: string; body?: Record<string, unknown> | null } | null,
   params?: Record<string, string>,
 ) {
-  if (!window) {
+  if (typeof window === 'undefined') {
     return null;
   }
 
