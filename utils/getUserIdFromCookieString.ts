@@ -15,11 +15,13 @@ export default async function getUserIdFromCookieString(
   const cookies = cookie.parse(cookieString);
   const sessionToken = cookies[tokenCookieKey];
   if (!sessionToken) {
+    console.log('missing sessionToken', { cookies, sessionToken });
     return null;
   }
 
   const sessionAndUser = await getSessionAndUser(sessionToken);
   if (!sessionAndUser) {
+    console.log('missing sessionAndUser', sessionAndUser);
     return null;
   }
 
