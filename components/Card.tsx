@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import {
-  Box,
   BoxProps,
   Flex,
   Heading,

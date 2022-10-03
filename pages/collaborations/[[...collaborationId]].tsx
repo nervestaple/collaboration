@@ -1,15 +1,16 @@
 import { SWRConfig } from 'swr';
 import type { GetServerSidePropsContext } from 'next';
-
-import getUserIdFromSession from '../../utils/getUserIdFromSession';
-import getCollaborationsOfUser from '../../db/getCollaborationsOfUser';
-import Collaborations from '../../components/Collaborations';
-import getCollaborationById from '../../db/getCollaborationById';
+import { unstable_getServerSession } from 'next-auth';
 import type {
   Collaboration,
   UserCollaborationInvite,
   UserCollaboration,
 } from '@prisma/client';
+
+import getCollaborationsOfUser from '../../db/getCollaborationsOfUser';
+import Collaborations from '../../components/Collaborations';
+import getCollaborationById from '../../db/getCollaborationById';
+import { authOptions } from '../api/auth/[...nextauth]';
 
 export interface CollaborationsAndInvites {
   invites: Array<UserCollaborationInvite & { collaboration: Collaboration }>;
@@ -37,8 +38,9 @@ export async function getServerSideProps({
 }: GetServerSidePropsContext<Params>): Promise<{
   props: Props;
 }> {
-  const userId = await getUserIdFromSession(req, res);
-  if (userId === null) {
+  const session = await unstable_getServerSession(req, res, authOptions);
+  const userId = session?.user?.id;
+  if (!userId) {
     return { props: {} };
   }
 

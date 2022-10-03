@@ -15,7 +15,7 @@ export type CollaborationsAndInvites = {
 };
 
 export default async function getCollaborationsOfUser(
-  userId: number,
+  userId: string,
 ): Promise<CollaborationsAndInvites | null> {
   const user = await db.user.findUnique({
     where: { id: userId },

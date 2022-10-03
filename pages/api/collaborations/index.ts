@@ -1,6 +1,6 @@
 import type { Collaboration } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Session, unstable_getServerSession } from 'next-auth';
+import { unstable_getServerSession } from 'next-auth';
 
 import db from '../../../db';
 import getCollaborationsOfUser, {
@@ -12,16 +12,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const session = (await unstable_getServerSession(req, res, authOptions)) as
-    | (Session & { userId: number })
-    | null;
+  const session = await unstable_getServerSession(req, res, authOptions);
 
-  if (!session?.userId) {
+  const userId = session?.user?.id;
+  if (!userId) {
     console.error(session);
-    res.status(500).json({ error: 'missing session.userId' });
+    res.status(500).json({ error: 'missing userId' });
     return;
   }
-  const { userId } = session;
 
   switch (req.method) {
     case 'POST':
@@ -37,7 +35,7 @@ export default async function handler(
 }
 
 async function getCollaborationsHandler(
-  userId: number,
+  userId: string,
   res: NextApiResponse<CollaborationsAndInvites>,
 ) {
   const collaborationsAndInvites = await getCollaborationsOfUser(userId);
@@ -50,7 +48,7 @@ async function getCollaborationsHandler(
 }
 
 async function createCollaborationHandler(
-  userId: number,
+  userId: string,
   res: NextApiResponse<Collaboration>,
 ) {
   const collaboration = await db.collaboration.create({

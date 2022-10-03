@@ -6,18 +6,12 @@ import { Server as SocketServer, Socket } from 'socket.io';
 
 import db from '../../db';
 import { CHAT_MESSAGE_KEY } from '../../utils/constants';
-import getUserIdFromSession from '../../utils/getUserIdFromSession';
+import getUserIdFromCookieString from '../../utils/getUserIdFromCookieString';
 
 export default async function chatSubscribe(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const userId = await getUserIdFromSession(req, res);
-  if (userId === null) {
-    res.status(401).json({ error: 'Not logged in.' });
-    return;
-  }
-
   const httpSocket = res.socket as NetSocket & {
     server: Server & { io?: SocketServer };
   };
@@ -33,9 +27,15 @@ export default async function chatSubscribe(
   httpSocket.server.io = io;
 
   io.on('connection', async (socket) => {
+    const cookieString = socket.handshake.headers.cookie;
+    const userId = await getUserIdFromCookieString(cookieString);
+    if (!userId) {
+      socket.disconnect();
+      return;
+    }
+
     const collaborationId = await getValidCollaborationId(socket, userId);
     if (collaborationId === null) {
-      console.log('disconnecting', { collaborationId });
       socket.disconnect();
       return;
     }
@@ -64,9 +64,8 @@ export default async function chatSubscribe(
 
 async function getValidCollaborationId(
   socket: Socket,
-  userId: number,
+  userId: string,
 ): Promise<number | null> {
-  console.log({ query: socket.handshake.query });
   if (!isString(socket.handshake.query.collaborationId)) {
     return null;
   }
@@ -75,8 +74,6 @@ async function getValidCollaborationId(
   if (!isFinite(collaborationId)) {
     return null;
   }
-
-  console.log({ collaborationId, userId });
 
   const user = await db.user.findUnique({
     where: { id: userId },

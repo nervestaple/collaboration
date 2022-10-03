@@ -27,7 +27,17 @@ export default function CollaborationListItem({
   const { mutate } = useSWRConfig();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(collaboration.name);
+  const [name, setName] = useState<string | null>(null);
+
+  const stopEditing = useCallback(() => {
+    setIsEditing(false);
+    setName(null);
+  }, []);
+
+  const startEditing = useCallback(() => {
+    setIsEditing(true);
+    setName(collaboration.name);
+  }, [collaboration]);
 
   const handleSubmit = useCallback(async () => {
     try {
@@ -38,11 +48,11 @@ export default function CollaborationListItem({
       });
       mutate('/collaborations');
       mutate(key);
-      setIsEditing(false);
+      stopEditing();
     } catch (e) {
       toast({ status: 'error', title: 'Error updating collaboration name' });
     }
-  }, [collaboration, mutate, toast, name]);
+  }, [collaboration, mutate, toast, name, stopEditing]);
 
   useEffect(() => {
     if (!isEditing) {
@@ -52,7 +62,7 @@ export default function CollaborationListItem({
     function handleKeyDown(e: KeyboardEvent) {
       switch (e.key) {
         case 'Escape':
-          setIsEditing(false);
+          stopEditing();
         case 'Enter':
           handleSubmit();
       }
@@ -60,13 +70,11 @@ export default function CollaborationListItem({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isEditing, handleSubmit]);
+  }, [isEditing, handleSubmit, stopEditing]);
 
   const ref = useRef<HTMLFormElement>(null);
   useOutsideClick({
-    handler() {
-      setIsEditing(false);
-    },
+    handler: stopEditing,
     ref,
   });
 
@@ -112,7 +120,7 @@ export default function CollaborationListItem({
           ) : (
             <>
               <Text px={4} py={2} noOfLines={1}>
-                {name}
+                {collaboration.name}
               </Text>
 
               {isSelected && (
@@ -120,10 +128,7 @@ export default function CollaborationListItem({
                   size="sm"
                   aria-label="edit name"
                   icon={<EditIcon />}
-                  onClick={() => {
-                    setIsEditing(true);
-                    setName(collaboration.name);
-                  }}
+                  onClick={startEditing}
                 />
               )}
             </>

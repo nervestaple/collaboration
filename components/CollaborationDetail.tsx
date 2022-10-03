@@ -1,19 +1,16 @@
 import {
   Avatar,
   Box,
-  Button,
   Divider,
   HStack,
   Tooltip,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { isFinite } from 'lodash-es';
 import { useSession } from 'next-auth/react';
 import useSWR from 'swr';
 
 import type { CollaborationExtended } from '../db/getCollaborationById';
-import fetchAPI from '../utils/fetchAPI';
 
 import Card from './Card';
 import Chat from './Chat';
@@ -28,7 +25,7 @@ interface Props {
 export default function CollaborationDetail({ collaborationId }: Props) {
   const { data } = useSession({ required: true });
   const avatarBg = useColorModeValue('gray.50', 'gray.500');
-  const { data: collaboration, error } = useSWR<CollaborationExtended>(
+  const { data: collaboration } = useSWR<CollaborationExtended>(
     collaborationId === null ? null : `/collaborations/${collaborationId}`,
     { revalidateOnMount: true },
   );
@@ -70,7 +67,7 @@ export default function CollaborationDetail({ collaborationId }: Props) {
                   exit={{ opacity: 0, width: 0 }}
                 >
                   <Tooltip label={member.user.name}>
-                    <Avatar name={member.user.name} />
+                    <Avatar name={member.user.name || undefined} />
                   </Tooltip>
                 </motion.div>
               ))}

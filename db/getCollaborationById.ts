@@ -18,7 +18,7 @@ export type CollaborationExtended = Collaboration & {
 };
 
 export default async function getCollaborationById(
-  userId: number,
+  userId: string,
   collaborationId: number,
 ) {
   const collaboration = await db.collaboration.findFirst({

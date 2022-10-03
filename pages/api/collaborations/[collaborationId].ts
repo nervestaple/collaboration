@@ -1,6 +1,6 @@
 import type { Collaboration, UserCollaboration } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Session, unstable_getServerSession } from 'next-auth';
+import { unstable_getServerSession } from 'next-auth';
 
 import db from '../../../db';
 import getCollaborationById from '../../../db/getCollaborationById';
@@ -10,15 +10,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Collaboration | UserCollaboration | { error: string }>,
 ) {
-  const session = (await unstable_getServerSession(req, res, authOptions)) as
-    | (Session & { userId: number })
-    | null;
+  const session = await unstable_getServerSession(req, res, authOptions);
 
-  if (!session?.userId) {
+  const userId = session?.user?.id;
+  if (!userId) {
     res.status(500).json({ error: 'Not logged in or no session found.' });
     return;
   }
-  const userId = session.userId;
 
   if (Array.isArray(req.query.collaborationId)) {
     res.status(404).json({ error: 'Malformed collaborationId.' });
@@ -48,7 +46,7 @@ export default async function handler(
 }
 
 async function getCollaborationHandler(
-  userId: number,
+  userId: string,
   id: number,
   res: NextApiResponse<Collaboration | { error: string }>,
 ) {
@@ -62,7 +60,7 @@ async function getCollaborationHandler(
 }
 
 async function updateCollaborationHandler(
-  userId: number,
+  userId: string,
   id: number,
   req: NextApiRequest,
   res: NextApiResponse<Collaboration | { error: string }>,
@@ -83,7 +81,7 @@ async function updateCollaborationHandler(
 }
 
 async function leaveCollaborationHandler(
-  userId: number,
+  userId: string,
   collaborationId: number,
   res: NextApiResponse<UserCollaboration | { error: string }>,
 ) {

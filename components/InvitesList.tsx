@@ -1,4 +1,4 @@
-import { Divider, Heading } from '@chakra-ui/react';
+import { Heading } from '@chakra-ui/react';
 import MotionList from './MotionList';
 
 import type { CollaborationsAndInvites } from '../db/getCollaborationsOfUser';

@@ -4,9 +4,9 @@ import type {
   UserCollaborationInvite,
 } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Session, unstable_getServerSession } from 'next-auth';
+import { unstable_getServerSession } from 'next-auth';
 import isValidEmail from 'is-valid-email';
-import { isBoolean } from 'lodash-es';
+import { isBoolean, isFinite, isString } from 'lodash-es';
 
 import db from '../../../../db';
 import { authOptions } from '../../auth/[...nextauth]';
@@ -15,12 +15,19 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<UserCollaborationInvite | { error: string }>,
 ) {
-  const session = (await unstable_getServerSession(req, res, authOptions)) as
-    | (Session & { userId: number })
-    | null;
+  const session = await unstable_getServerSession(req, res, authOptions);
 
   if (!session) {
     res.status(401).json({ error: 'No session -- not logged in?' });
+    return;
+  }
+
+  const userId = session?.user?.id;
+  const userEmail = session?.user?.email;
+  if (!userId || !isString(userEmail)) {
+    res
+      .status(400)
+      .json({ error: 'userId or user email missing from session.' });
     return;
   }
 
@@ -41,11 +48,17 @@ export default async function handler(
 
   switch (req.method) {
     case 'POST':
-      await inviteToCollaborationHandler(session, collaborationId, req, res);
+      await inviteToCollaborationHandler(
+        userEmail,
+        userId,
+        collaborationId,
+        req,
+        res,
+      );
       return;
     case 'PATCH':
       await respondToCollaborationInviteHandler(
-        session,
+        userId,
         collaborationId,
         req,
         res,
@@ -58,20 +71,19 @@ export default async function handler(
 }
 
 async function inviteToCollaborationHandler(
-  session: Session & { userId: number },
+  userEmail: string,
+  userId: string,
   collaborationId: number,
   req: NextApiRequest,
   res: NextApiResponse<UserCollaborationInvite | { error: string }>,
 ) {
-  const userId = session.userId;
-
   if (!isValidEmail(req.body.email) || req.body.email.length === '') {
     res.status(400).json({ error: `Invalid email: ${req.body.email}.` });
     return;
   }
 
   const { email } = req.body;
-  if (email === session.user?.email) {
+  if (email === userEmail) {
     res.status(400).json({ error: 'You can not invite yourself.' });
     return;
   }
@@ -114,7 +126,7 @@ async function inviteToCollaborationHandler(
 }
 
 async function respondToCollaborationInviteHandler(
-  { userId }: Session & { userId: number },
+  userId: string,
   collaborationId: number,
   req: NextApiRequest,
   res: NextApiResponse,

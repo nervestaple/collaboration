@@ -7,14 +7,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { isFinite } from 'lodash-es';
-import {
-  type FormEvent,
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  useCallback,
-} from 'react';
+import { type FormEvent, useEffect, useRef, useState, useMemo } from 'react';
 import io, { type Socket } from 'socket.io-client';
 
 import type { CollaborationExtended } from '../db/getCollaborationById';
@@ -26,7 +19,7 @@ import MotionListItem from './MotionListItem';
 
 interface ServerChatMessage {
   id: number;
-  userId: number;
+  userId: string;
   text: string;
 }
 
@@ -54,13 +47,6 @@ export default function Chat({ collaboration }: Props) {
       ),
     [collaboration],
   );
-
-  // const tryConnect = useCallback(async () => {
-  //   await fetch('/api/chat-subscribe');
-  //   socket.current = io({
-  //     query: { collaborationId },
-  //   });
-  // }, [collaborationId]);
 
   useEffect(() => {
     async function openSocket() {
@@ -132,7 +118,11 @@ export default function Chat({ collaboration }: Props) {
             my={2}
             scrollSnapAlign={i === messages.length - 1 ? 'end' : undefined}
           >
-            <Avatar size="xs" mx={2} name={userMap.get(message.userId)?.name} />
+            <Avatar
+              size="xs"
+              mx={2}
+              name={userMap.get(message.userId)?.name || undefined}
+            />
             {message.text}
           </MotionListItem>
         ))}
