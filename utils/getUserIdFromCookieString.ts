@@ -9,18 +9,13 @@ export default async function getUserIdFromCookieString(
     return null;
   }
 
-  const cookiePrefix = url?.startsWith('https:') ? '__Secure-' : '';
+  const cookiePrefix = url?.startsWith('http:') ? '' : '__Secure-';
   const tokenCookieKey = `${cookiePrefix}next-auth.session-token`;
 
   const cookies = cookie.parse(cookieString);
   const sessionToken = cookies[tokenCookieKey];
   if (!sessionToken) {
-    console.error('missing sessionToken', {
-      cookies,
-      sessionToken,
-      cookiePrefix,
-      tokenCookieKey,
-    });
+    console.error('missing sessionToken');
     return null;
   }
 

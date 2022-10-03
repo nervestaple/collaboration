@@ -27,15 +27,10 @@ export default async function chatSubscribe(
   httpSocket.server.io = io;
 
   io.on('connection', async (socket) => {
-    const url = socket.request.url;
-    const cookieString = socket.handshake.headers.cookie;
+    const { referer: url, cookie: cookieString } = socket.handshake.headers;
     const userId = await getUserIdFromCookieString(url, cookieString);
     if (!userId) {
-      console.error(`disconnecting, missing userId`, {
-        url,
-        cookieString,
-        userId,
-      });
+      console.error('disconnecting, missing userId');
       socket.disconnect();
       return;
     }
