@@ -81,7 +81,13 @@ export default async function chatSubscribe(
     sendRoomStatus();
 
     socket.on('disconnect', () => {
-      onlineStatus.get(collaborationId)?.get(userId)?.delete(socket.id);
+      updateOnlineStatusOnDisconnect(
+        onlineStatus,
+        collaborationId,
+        userId,
+        socket.id,
+      );
+      sendRoomStatus();
     });
 
     async function handleIncomingChatMessage(text: string) {
