@@ -5,8 +5,15 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { Server as SocketServer, Socket } from 'socket.io';
 
 import db from '../../db';
-import { CHAT_MESSAGE_KEY } from '../../utils/constants';
+import {
+  CLIENT_CHAT_MESSAGE_KEY,
+  SERVER_CHAT_MESSAGE_KEY,
+  SERVER_CHAT_STATUS_KEY,
+} from '../../utils/constants';
 import getUserIdFromCookieString from '../../utils/getUserIdFromCookieString';
+
+type SocketsByUserId = Map<string, Set<string>>;
+type OnlineStatusByCollaborationId = Map<number, SocketsByUserId>;
 
 export default async function chatSubscribe(
   req: NextApiRequest,
@@ -26,6 +33,8 @@ export default async function chatSubscribe(
   const io = new SocketServer(httpSocket.server);
   httpSocket.server.io = io;
 
+  const onlineStatus: OnlineStatusByCollaborationId = new Map();
+
   io.on('connection', async (socket) => {
     const { referer: url, cookie: cookieString } = socket.handshake.headers;
     const userId = await getUserIdFromCookieString(url, cookieString);
@@ -42,8 +51,38 @@ export default async function chatSubscribe(
       return;
     }
 
+    updateOnlineStatusOnConnect(
+      onlineStatus,
+      collaborationId,
+      userId,
+      socket.id,
+    );
+
     const roomId = `collaboration:${collaborationId}`;
     socket.join(roomId);
+
+    async function sendRoomStatus() {
+      if (!userId || collaborationId === null) {
+        return;
+      }
+
+      const socketsByUserId = onlineStatus.get(collaborationId);
+      if (!socketsByUserId) {
+        return;
+      }
+
+      const onlineUserIds = [...socketsByUserId.entries()]
+        .filter(([, socketsForUser]) => socketsForUser.size > 0)
+        .map(([id]) => id);
+
+      io.to(roomId).emit(SERVER_CHAT_STATUS_KEY, { onlineUserIds });
+    }
+
+    sendRoomStatus();
+
+    socket.on('disconnect', () => {
+      onlineStatus.get(collaborationId)?.get(userId)?.delete(socket.id);
+    });
 
     async function handleIncomingChatMessage(text: string) {
       if (!text || text === '' || collaborationId === null || userId === null) {
@@ -55,10 +94,10 @@ export default async function chatSubscribe(
       });
 
       const socketMessage = { id, userId, text };
-      io.to(roomId).emit(CHAT_MESSAGE_KEY, socketMessage);
+      io.to(roomId).emit(SERVER_CHAT_MESSAGE_KEY, socketMessage);
     }
 
-    socket.on(CHAT_MESSAGE_KEY, handleIncomingChatMessage);
+    socket.on(CLIENT_CHAT_MESSAGE_KEY, handleIncomingChatMessage);
   });
 
   res.end();
@@ -87,4 +126,55 @@ async function getValidCollaborationId(
   }
 
   return collaborationId;
+}
+
+function updateOnlineStatusOnDisconnect(
+  onlineStatus: OnlineStatusByCollaborationId,
+  collaborationId: number,
+  userId: string,
+  socketId: string,
+) {
+  const socketsByUserId = onlineStatus.get(collaborationId);
+  if (!socketsByUserId) {
+    return;
+  }
+
+  const socketsForUser = socketsByUserId.get(userId);
+  if (!socketsForUser) {
+    return;
+  }
+
+  socketsForUser.delete(socketId);
+
+  socketsByUserId.set(userId, socketsForUser);
+  onlineStatus.set(collaborationId, socketsByUserId);
+}
+
+function updateOnlineStatusOnConnect(
+  onlineStatus: OnlineStatusByCollaborationId,
+  collaborationId: number,
+  userId: string,
+  socketId: string,
+) {
+  if (!onlineStatus.has(collaborationId)) {
+    onlineStatus.set(collaborationId, new Map());
+  }
+
+  const socketsByUserId = onlineStatus.get(collaborationId);
+  if (!socketsByUserId) {
+    return;
+  }
+
+  if (!socketsByUserId.has(userId)) {
+    socketsByUserId.set(userId, new Set());
+  }
+
+  const socketsForUser = socketsByUserId.get(userId);
+  if (!socketsForUser) {
+    return;
+  }
+
+  socketsForUser.add(socketId);
+  socketsByUserId.set(userId, socketsForUser);
+  onlineStatus.set(collaborationId, socketsByUserId);
 }

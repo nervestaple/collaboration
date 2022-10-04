@@ -4,16 +4,18 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Tooltip,
   useToast,
 } from '@chakra-ui/react';
-import { isFinite } from 'lodash-es';
-import { type FormEvent, useEffect, useRef, useState, useMemo } from 'react';
-import io, { type Socket } from 'socket.io-client';
+import { type FormEvent, useEffect, useState, useMemo } from 'react';
+import { type Socket } from 'socket.io-client';
 
 import type { CollaborationExtended } from '../db/getCollaborationById';
 
-import useSelectedCollaborationId from '../hooks/useSelectedCollaborationId';
-import { CHAT_MESSAGE_KEY } from '../utils/constants';
+import {
+  CLIENT_CHAT_MESSAGE_KEY,
+  SERVER_CHAT_MESSAGE_KEY,
+} from '../utils/constants';
 import MotionList from './MotionList';
 import MotionListItem from './MotionListItem';
 
@@ -25,9 +27,10 @@ interface ServerChatMessage {
 
 interface Props {
   collaboration: CollaborationExtended;
+  socket: Socket | null;
 }
 
-export default function Chat({ collaboration }: Props) {
+export default function Chat({ collaboration, socket }: Props) {
   const toast = useToast();
   const [{ messages }, setMessages] = useState<{
     messages: ServerChatMessage[];
@@ -36,9 +39,7 @@ export default function Chat({ collaboration }: Props) {
     messages: collaboration.messages,
     seenMessageIds: new Set(collaboration.messages.map(({ id }) => id)),
   }));
-  const socket = useRef<Socket | null>(null);
   const [inputText, setInputText] = useState('');
-  const collaborationId = useSelectedCollaborationId();
 
   const userMap = useMemo(
     () =>
@@ -49,52 +50,33 @@ export default function Chat({ collaboration }: Props) {
   );
 
   useEffect(() => {
-    async function openSocket() {
-      if (!isFinite(collaborationId)) {
-        return;
-      }
+    function handleChatMessageReceived(message: ServerChatMessage) {
+      setMessages((old) => {
+        if (old.seenMessageIds.has(message.id)) {
+          return old;
+        }
 
-      if (socket.current === null || !socket.current.connected) {
-        await fetch('/api/chat-subscribe');
-        socket.current = io({
-          query: { collaborationId },
-        });
-      }
-
-      socket.current.on('connect', () => {
-        console.log('connected');
+        return {
+          messages: [...old.messages, message],
+          seenMessageIds: new Set([...old.seenMessageIds, message.id]),
+        };
       });
-
-      function handleChatMessageReceived(message: ServerChatMessage) {
-        setMessages((old) => {
-          if (old.seenMessageIds.has(message.id)) {
-            return old;
-          }
-
-          return {
-            messages: [...old.messages, message],
-            seenMessageIds: new Set([...old.seenMessageIds, message.id]),
-          };
-        });
-      }
-      socket.current.on(CHAT_MESSAGE_KEY, handleChatMessageReceived);
     }
 
-    openSocket();
+    socket?.on(SERVER_CHAT_MESSAGE_KEY, handleChatMessageReceived);
 
     return () => {
-      socket.current?.close();
-      socket.current = null;
+      socket?.off(SERVER_CHAT_MESSAGE_KEY, handleChatMessageReceived);
     };
-  }, [collaborationId]);
+  }, [socket]);
 
   function handleSend() {
-    if (!socket.current || !socket.current.connected) {
+    if (!socket || !socket.connected) {
       toast({ title: 'Failed to send message.', status: 'error' });
       return;
     }
 
-    socket.current.emit('chat-message', inputText);
+    socket.emit(CLIENT_CHAT_MESSAGE_KEY, inputText);
     setInputText('');
   }
 
@@ -112,20 +94,27 @@ export default function Chat({ collaboration }: Props) {
         overscrollBehaviorY="contain"
         scrollSnapType="y proximity"
       >
-        {messages.map((message, i) => (
-          <MotionListItem
-            key={message.id}
-            my={2}
-            scrollSnapAlign={i === messages.length - 1 ? 'end' : undefined}
-          >
-            <Avatar
-              size="xs"
-              mx={2}
-              name={userMap.get(message.userId)?.name || undefined}
-            />
-            {message.text}
-          </MotionListItem>
-        ))}
+        {messages.map((message, i) => {
+          const user = userMap.get(message.userId);
+          return (
+            <MotionListItem
+              key={message.id}
+              my={2}
+              scrollSnapAlign={i === messages.length - 1 ? 'end' : undefined}
+            >
+              <Tooltip label={user?.name}>
+                <Avatar
+                  size="xs"
+                  mx={2}
+                  name={user?.name || undefined}
+                  src={user?.image || ''}
+                  cursor="pointer"
+                />
+              </Tooltip>
+              {message.text}
+            </MotionListItem>
+          );
+        })}
       </MotionList>
 
       <form onSubmit={handleSendSubmit} style={{ width: '100%' }}>

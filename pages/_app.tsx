@@ -34,7 +34,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     <SWRConfig
       value={{
         fetcher: fetchAPI,
-        suspense: true,
       }}
     >
       <SessionProvider>

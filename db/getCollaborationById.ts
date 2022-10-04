@@ -14,13 +14,12 @@ export type CollaborationExtended = Collaboration & {
     user: User;
   })[];
   invites: (UserCollaborationInvite & { user: User })[];
-  isInvite: boolean;
 };
 
 export default async function getCollaborationById(
   userId: string,
   collaborationId: number,
-) {
+): Promise<CollaborationExtended | null> {
   const collaboration = await db.collaboration.findFirst({
     where: {
       id: collaborationId,
@@ -31,9 +30,13 @@ export default async function getCollaborationById(
     },
     include: {
       invites: {
-        include: { user: { select: { id: true, name: true, email: true } } },
+        include: {
+          user: true,
+        },
       },
-      members: { include: { user: { select: { id: true, name: true } } } },
+      members: {
+        include: { user: true },
+      },
       messages: { orderBy: { createdAt: 'asc' } },
     },
   });

@@ -81,7 +81,7 @@ export default function CollaborationsPage({ initialData }: Props) {
   }
 
   return (
-    <SWRConfig value={{ fallback: initialData, suspense: true }}>
+    <SWRConfig value={{ fallback: initialData }}>
       <Collaborations />
     </SWRConfig>
   );

@@ -1,22 +1,12 @@
-import {
-  Avatar,
-  Box,
-  Divider,
-  HStack,
-  Tooltip,
-  useColorModeValue,
-} from '@chakra-ui/react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import useSWR from 'swr';
 
 import type { CollaborationExtended } from '../db/getCollaborationById';
 
 import Card from './Card';
-import Chat from './Chat';
-import InviteCollaborator from './InviteCollaborator';
 import InviteResponseActions from './InviteResponseActions';
 import LeaveCollaborationButton from './LeaveCollaborationButton';
+import RealtimeCollaboration from './RealtimeCollaboration';
 
 interface Props {
   collaborationId: number | null;
@@ -24,7 +14,6 @@ interface Props {
 
 export default function CollaborationDetail({ collaborationId }: Props) {
   const { data } = useSession({ required: true });
-  const avatarBg = useColorModeValue('gray.50', 'gray.500');
   const { data: collaboration } = useSWR<CollaborationExtended>(
     collaborationId === null ? null : `/collaborations/${collaborationId}`,
     { revalidateOnMount: true },
@@ -53,35 +42,10 @@ export default function CollaborationDetail({ collaborationId }: Props) {
       cardAction={action}
       maxH="100%"
     >
-      <Box w="full" pb={4}>
-        <HStack>
-          {!isInvite && <InviteCollaborator />}
-
-          <HStack bg={avatarBg} w="full" p={2} rounded="lg" overflowX="auto">
-            <AnimatePresence>
-              {collaboration.members.map((member) => (
-                <motion.div
-                  key={member.userId}
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: 'auto' }}
-                  exit={{ opacity: 0, width: 0 }}
-                >
-                  <Tooltip label={member.user.name}>
-                    <Avatar name={member.user.name || undefined} />
-                  </Tooltip>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </HStack>
-        </HStack>
-      </Box>
-
-      {!isInvite && (
-        <>
-          <Divider />
-          <Chat collaboration={collaboration} />
-        </>
-      )}
+      <RealtimeCollaboration
+        collaboration={collaboration}
+        isInvite={isInvite}
+      />
     </Card>
   );
 }

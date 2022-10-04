@@ -1,5 +1,4 @@
-import { Center, Grid, GridItem, Spinner } from '@chakra-ui/react';
-import { Suspense } from 'react';
+import { Grid, GridItem } from '@chakra-ui/react';
 
 import useSelectedCollaborationId from '../hooks/useSelectedCollaborationId';
 
@@ -9,27 +8,17 @@ import CollaborationDetail from './CollaborationDetail';
 export default function Collaborations() {
   const selectedCollaborationId = useSelectedCollaborationId();
 
-  const fallback = (
-    <Center flexGrow={1} h="200px">
-      <Spinner />
-    </Center>
-  );
-
   return (
     <Grid w="full" h="full" gridTemplateColumns="1fr 1fr" gridGap="16px">
       <GridItem minH={0} minW={0}>
-        <Suspense fallback={fallback}>
-          <CollaborationList selectedId={selectedCollaborationId} />
-        </Suspense>
+        <CollaborationList selectedId={selectedCollaborationId} />
       </GridItem>
 
       <GridItem minH={0} minW={0}>
-        <Suspense fallback={fallback}>
-          <CollaborationDetail
-            collaborationId={selectedCollaborationId}
-            key={selectedCollaborationId}
-          />
-        </Suspense>
+        <CollaborationDetail
+          collaborationId={selectedCollaborationId}
+          key={selectedCollaborationId}
+        />
       </GridItem>
     </Grid>
   );

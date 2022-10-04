@@ -24,7 +24,6 @@ export default function MotionListItem({
         w="full"
         transition="0.15s background-color ease-in-out, 0.15s border-color ease-in-out"
         pr={2}
-        cursor="pointer"
         borderLeft="4px solid transparent"
         {...props}
         {...(isSelected && {
